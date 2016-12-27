@@ -1,0 +1,117 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font: 13px Helvetica, Arial;
+}
+
+.login__input {
+    padding: 15px;
+    border: none;
+    border-bottom: 2px solid #fff;
+    background: #000;
+    flex: 1;
+    color: #fff;
+    font-size: 30px;
+}
+
+.login__input:focus {
+    outline: none;
+}
+
+.chat__rooms {
+    height: 25px;
+    display: flex;
+    border-bottom: 1px solid #000;
+}
+
+.chat__room {
+    border-right: 1px solid #000;
+    border-bottom: 1px solid #000;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    max-width: 25%;
+    position: relative;
+}
+
+.chat__room_active {
+    border-bottom: none;
+    outline: 1px solid #fff;
+}
+
+li.chat__room:after {
+    width: 3px;
+    height: 2px;
+    content: '';
+    display: block;
+    position: absolute;
+    right: -4px;
+    bottom: -1px;
+    border-left: 1px solid #000;
+    border-bottom: 1px solid #000;
+}
+
+.chat__form input {
+    border: 0;
+    padding: 10px;
+    margin-right: .5%;
+    flex: 5
+}
+
+.chat__form button {
+    background: rgb(130, 224, 255);
+    border: none;
+    padding: 10px;
+    flex: 1;
+}
+
+.login__form {
+    background: #000;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+}
+
+.login__form_hidden {
+    display: none;
+}
+
+.login__wrap {
+    width: 50%;
+    height: 35px;
+    display: flex;
+    justify-content: space-around;
+}
+
+.chat__form {
+    background: #000;
+    padding: 3px;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+}
+
+.chat__messages {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+.chat__messages li {
+    padding: 5px 10px;
+}
+
+.chat__messages li:nth-child(odd) {
+    background: #eee;
+}

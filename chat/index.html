@@ -2,48 +2,79 @@
 <html>
     <head>
         <title>Socket.IO chat</title>
-        <style>
-         * { margin: 0; padding: 0; box-sizing: border-box; }
-         body { font: 13px Helvetica, Arial; }
-         form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-         form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
-         form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-         #messages { list-style-type: none; margin: 0; padding: 0; }
-         #messages li { padding: 5px 10px; }
-         #messages li:nth-child(odd) { background: #eee; }
-        </style>
+        <link rel="stylesheet" type="text/css" href="/index.css" />
     </head>
     <body>
-        <ul id="messages"></ul>
-        <form action="">
-            <input id="m" autocomplete="off" /><button>Send</button>
+        <form action="" class="login__form">
+            <div class="login__wrap">
+                <input class="login__input" />
+            </div>
         </form>
+        <div class="chat">
+            <ul class="chat__rooms"></ul>
+            <ul class="chat__messages"></ul>
+            <form action="" class="chat__form">
+                <input class="chat__input" autocomplete="off" />
+                <button>Send</button>
+            </form>
+        </div>
     </body>
     <script src="/socket.io/socket.io.js"></script>
     <script>
      const socket = io(),
-           form = document.querySelector('form'),
-           messageInput = document.querySelector('#m'),
-           messagesWindow = document.querySelector('#messages');
+           loginForm = document.querySelector('.login__form'),
+           loginInput = document.querySelector('.login__input'),
+           chatForm = document.querySelector('.chat__form'),
+           chatRooms = document.querySelector('.chat__rooms'),
+           chatInput = document.querySelector('.chat__input'),
+           chatWindow = document.querySelector('.chat__messages');
+
+     function login () {
+         socket.emit('login', loginInput.value);
+     }
+
+     loginForm.addEventListener('submit', e => {
+         login();
+         e.preventDefault();
+     });
 
      function sendMessage () {
-         socket.emit('chat message', messageInput.value);
-         messageInput.value = '';
+         socket.emit('chat message', chatInput.value);
+         chatInput.value = '';
      }
+
+     chatForm.addEventListener('submit', e => {
+         sendMessage();
+         e.preventDefault();
+     });
+     chatInput.addEventListener('keyup', e => {
+         if (e.keyCode === '13') {
+             sendMessage();
+         }
+     });
 
      function receiveMessage (msg) {
          const messageNode = document.createElement('li'),
                messageTextNode = document.createTextNode(msg);
 
          messageNode.appendChild(messageTextNode);
-         messagesWindow.appendChild(messageNode);
+         chatWindow.appendChild(messageNode);
      }
 
-     form.addEventListener('submit', e => {
-         sendMessage();
-         e.preventDefault();
-     });
-
      socket.on('chat message', receiveMessage);
+
+     function _onLogin (roomName) {
+         const roomNode = document.createElement('li'),
+               roomTextNode = document.createTextNode(roomName);
+
+         roomNode.appendChild(roomTextNode);
+         roomNode.classList.add('chat__room');
+         roomNode.classList.add('chat__room_active');
+         chatRooms.appendChild(roomNode);
+
+         loginForm.classList.add('login__form_hidden');
+     }
+
+     socket.on('login', _onLogin)
     </script>
 </html>
