@@ -20,22 +20,28 @@ app.get('/index.css', (req, res) => {
 
 io.on('connection', socket => {
     socket.on('login', name => {
+        const userList = [];
+
         people[socket.id] = {
             "name" : name,
-            "room" : 0
+            "room" : 'ALL'
         };
 
-        io.emit("update", people[socket.id].name + " is online.")
-        io.emit("update-people", people);
+        socket.join('ALL');
         socket.emit('login', 'ALL');
+
+        socket.broadcast.to(people[socket.id].room).emit('chat message', `${people[socket.id].name} has joined.`);
+        io.in(people[socket.id].room).emit('user join', people[socket.id].name);
+
+        for (var user in people) {
+            if (typeof people[user].name === 'undefined') continue;
+
+            userList.push(people[user].name);
+        }
+
+        socket.emit('user list', userList);
+
         clients.push(socket);
-
-        console.log(people);
-
-        // WHAT?
-        people[socket.id] = {
-            "name": name
-        };
     });
 
     socket.on('createRoom', name => {
@@ -58,11 +64,14 @@ io.on('connection', socket => {
               hours = ('00' + now.getHours()).substr(-2,2),
               minutes = ('00' + now.getMinutes()).substr(-2,2);
 
-        msg ? io.emit('chat message', `[${hours}:${minutes}] ${people[socket.id].name}: ${msg}`) : '';
+        msg ? socket.broadcast.to(people[socket.id].room).emit('chat message', `[${hours}:${minutes}] ${people[socket.id].name}: ${msg}`) : '';
     });
 
     socket.on('disconnect', () => {
-        io.emit('chat message', 'User left your channel');
+        if (people[socket.id]) {
+            socket.broadcast.to(people[socket.id].room).emit('user leave', people[socket.id].name);
+            io.emit('chat message', `${people[socket.id].name} has left.`);
+        }
     });
 });
 

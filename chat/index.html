@@ -12,7 +12,13 @@
         </form>
         <div class="chat">
             <ul class="chat__rooms"></ul>
-            <ul class="chat__messages"></ul>
+            <div class="chat__content">
+                <ul class="chat__messages"></ul>
+                <div class="user-list">
+                    <div class="user-list__title">Онлайн</div>
+                    <ul class="user-list__content"></ul>
+                </div>
+            </div>
             <form action="" class="chat__form">
                 <input class="chat__input" autocomplete="off" />
                 <button>Send</button>
@@ -27,6 +33,7 @@
            chatForm = document.querySelector('.chat__form'),
            chatRooms = document.querySelector('.chat__rooms'),
            chatInput = document.querySelector('.chat__input'),
+           chatUserList = document.querySelector('.user-list__content'),
            chatWindow = document.querySelector('.chat__messages');
 
      function login () {
@@ -39,14 +46,27 @@
      });
 
      function sendMessage () {
-         socket.emit('chat message', chatInput.value);
-         chatInput.value = '';
+         const msg = chatInput.value;
+         if (msg) {
+             socket.emit('chat message', msg);
+             appendMyMessage(msg);
+             chatInput.value = '';
+         }
+     }
+
+     function appendMyMessage (msg) {
+         const now = new Date(),
+               hours = ('00' + now.getHours()).substr(-2,2),
+               minutes = ('00' + now.getMinutes()).substr(-2,2);
+
+         receiveMessage(`[${hours}:${minutes}] You: ${msg}`);
      }
 
      chatForm.addEventListener('submit', e => {
          sendMessage();
          e.preventDefault();
      });
+
      chatInput.addEventListener('keyup', e => {
          if (e.keyCode === '13') {
              sendMessage();
@@ -75,6 +95,35 @@
          loginForm.classList.add('login__form_hidden');
      }
 
-     socket.on('login', _onLogin)
+     socket.on('login', _onLogin);
+
+     function _onUserLeave (username) {
+         const userToRemove = chatUserList.querySelector(`li[data-username="${username}"]`);
+
+         if (userToRemove)
+             userToRemove.remove();
+     }
+
+     socket.on('user leave', _onUserLeave);
+
+     function _onUserJoin (username) {
+         const userNode = document.createElement('li'),
+               userTextNode = document.createTextNode(username);
+
+         userNode.appendChild(userTextNode);
+         userNode.dataset.username = username;
+         chatUserList.appendChild(userNode);
+     }
+
+     socket.on('user join', _onUserJoin);
+
+     function _getUserList (userList) {
+         chatUserList.innerHTML = '';
+         userList.forEach(user => {
+             _onUserJoin(user);
+         });
+     }
+
+     socket.on('user list', _getUserList);
     </script>
 </html>

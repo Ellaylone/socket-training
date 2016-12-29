@@ -1,11 +1,20 @@
+html, body {
+    min-height: 100%;
+}
+
+body {
+    height: 100%;
+    font: 13px Helvetica, Arial;
+}
+
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-body {
-    font: 13px Helvetica, Arial;
+li {
+    list-style-type: none;
 }
 
 .login__input {
@@ -16,14 +25,53 @@ body {
     flex: 1;
     color: #fff;
     font-size: 30px;
+    text-align: center;
 }
 
 .login__input:focus {
     outline: none;
 }
 
+.chat {
+    display: flex;
+}
+
+.chat__content {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    padding: 35px 0 50px;
+    display: flex;
+    overflow: scroll;
+}
+
+.chat__messages {
+    flex: 4;
+}
+
+.user-list {
+    flex: 1;
+    max-width: 127px;
+    border-left: 1px solid #000;
+}
+
+.user-list__title {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+.user-list__content {
+    padding: 0 7px;
+}
+
+.user-list__content li {
+    margin-bottom: 7px;
+}
+
 .chat__rooms {
     height: 25px;
+    width: 100%;
+    position: fixed;
     display: flex;
     border-bottom: 1px solid #000;
 }
@@ -45,7 +93,7 @@ body {
     outline: 1px solid #fff;
 }
 
-li.chat__room:after {
+.chat__room:after {
     width: 3px;
     height: 2px;
     content: '';
@@ -100,10 +148,10 @@ li.chat__room:after {
     bottom: 0;
     width: 100%;
     display: flex;
+    height: 40px;
 }
 
 .chat__messages {
-    list-style-type: none;
     margin: 0;
     padding: 0;
 }
