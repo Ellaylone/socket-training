@@ -38,34 +38,57 @@
            chatWindow = document.querySelector('.chat__messages'),
            chatTyping = document.querySelector('.chat__typing');
 
-     function login () {
+     let userinfo = {
+         name: false,
+         uuid: false,
+         room: 0
+     };
+
+     function _onUserClick (e) {
+         if (e.target.classList.contains('user-list__link')) {
+             socket.emit('join private', e.target.dataset.room);
+         }
+     }
+
+     chatUserList.addEventListener('click', _onUserClick);
+
+     function _login () {
          socket.emit('login', loginInput.value);
+         socket.emit('get userinfo');
      }
 
      loginForm.addEventListener('submit', e => {
-         login();
+         _login();
          e.preventDefault();
      });
 
-     function sendMessage () {
+     socket.on('userinfo', (user) => {
+         userinfo = user;
+     });
+
+     function _sendMessage () {
          const msg = chatInput.value;
          if (msg) {
              socket.emit('chat message', msg);
-             appendMyMessage(msg);
+             _appendMyMessage(msg);
              chatInput.value = '';
          }
      }
 
-     function appendMyMessage (msg) {
+     function _appendMyMessage (msg) {
          const now = new Date(),
                hours = ('00' + now.getHours()).substr(-2,2),
                minutes = ('00' + now.getMinutes()).substr(-2,2);
 
-         receiveMessage(`[${hours}:${minutes}] You: ${msg}`);
+         _receiveMessage({
+             author: userinfo.name,
+             timestamp: `[${hours}:${minutes}]`,
+             text: msg
+         });
      }
 
      chatForm.addEventListener('submit', e => {
-         sendMessage();
+         _sendMessage();
          e.preventDefault();
      });
 
@@ -73,35 +96,40 @@
 
      function _onTyping () {
          clearTimeout(typingTimeout);
-         socket.emit('typingMessage', { 'isTyping': true });
-         typingTimeout = setTimeout(typingTimeoutFunction, 3000);
+         socket.emit('typing message', { 'isTyping': true });
+         typingTimeout = setTimeout(_typingTimeoutFunction, 1500);
      }
 
      chatInput.addEventListener('keyup', e => {
          if (e.keyCode === '13') {
-             sendMessage();
+             _sendMessage();
          } else {
              _onTyping();
          }
      });
 
-     function receiveMessage (msg) {
+     function _receiveMessage (msg) {
+         if (userinfo.uuid === false) return;
+
          const messageNode = document.createElement('li'),
-               messageTextNode = document.createTextNode(msg);
+               fullMessage = `${msg.timestamp} ${msg.author}: ${msg.text}`,
+               messageTextNode = document.createTextNode(fullMessage);
 
          messageNode.appendChild(messageTextNode);
          chatWindow.appendChild(messageNode);
      }
 
-     socket.on('chat message', receiveMessage);
+     socket.on('chat message', _receiveMessage);
 
-     function _onLogin (roomName) {
+     function _onLogin (roomID) {
          const roomNode = document.createElement('li'),
+               roomName = roomID === 0 ? 'ALL' : 'private',
                roomTextNode = document.createTextNode(roomName);
 
          roomNode.appendChild(roomTextNode);
          roomNode.classList.add('chat__room');
          roomNode.classList.add('chat__room_active');
+         roomNode.dataset.roomID = roomID;
          chatRooms.appendChild(roomNode);
 
          loginForm.classList.add('login__form_hidden');
@@ -118,12 +146,22 @@
 
      socket.on('user leave', _onUserLeave);
 
-     function _onUserJoin (username) {
+     function _onUserJoin (user) {
          const userNode = document.createElement('li'),
-               userTextNode = document.createTextNode(username);
+               userLinkNode = document.createElement('a'),
+               userLink = document.createAttribute('href'),
+               userTextNode = document.createTextNode(user.name);
 
-         userNode.appendChild(userTextNode);
-         userNode.dataset.username = username;
+         userLinkNode.appendChild(userTextNode);
+         userLinkNode.dataset.uuid = user.uuid;
+         userLinkNode.classList.add('user-list__link');
+
+         userLink.value = '#';
+         userLinkNode.setAttributeNode(userLink);
+
+         userNode.appendChild(userLinkNode);
+         userNode.dataset.username = user.name;
+
          chatUserList.appendChild(userNode);
      }
 
@@ -152,10 +190,20 @@
          }
      }
 
-     function typingTimeoutFunction (){
-         socket.emit('typingMessage', { isTyping: false });
+     function _typingTimeoutFunction () {
+         socket.emit('typing message', { isTyping: false });
      }
 
-     socket.on('typingMessage', _onUserTyping);
+     socket.on('typing message', _onUserTyping);
+
+     function changeRoom (roomID) {
+         console.log(roomID, 'changed room');
+     }
+
+     function createChatRoom (uuid) {
+         socket.emit('create room', {
+
+         });
+     }
     </script>
 </html>

@@ -58,7 +58,7 @@ li {
 }
 
 .chat__typing_hidden {
-    transition: all 2s linear;
+    transition: all 0.5s linear;
     opacity: 0;
 }
 
@@ -75,6 +75,11 @@ li {
 
 .user-list__content {
     padding: 0 7px;
+}
+
+.user-list__link {
+    text-decoration: none;
+    color: #000;
 }
 
 .user-list__content li {
