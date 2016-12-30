@@ -1,4 +1,5 @@
 'use strict';
+
 const app = require('express')(),
       path = require('path'),
       http = require('http').Server(app),
@@ -33,15 +34,26 @@ io.on('connection', socket => {
         socket.broadcast.to(people[socket.id].room).emit('chat message', `${people[socket.id].name} has joined.`);
         io.in(people[socket.id].room).emit('user join', people[socket.id].name);
 
-        for (var user in people) {
-            if (typeof people[user].name === 'undefined') continue;
+        for (let user in people) {
+            if (people[user] && typeof people[user].name !== 'undefined') {
+                userList.push(people[user].name);
+            }
 
-            userList.push(people[user].name);
+            continue;
         }
 
         socket.emit('user list', userList);
 
         clients.push(socket);
+    });
+
+    socket.on('typingMessage', (user) => {
+        if(people[socket.id]) {
+            socket.broadcast.to(people[socket.id].room).emit('typingMessage', {
+                name: people[socket.id].name,
+                isTyping: user.isTyping
+            });
+        }
     });
 
     socket.on('createRoom', name => {
@@ -71,6 +83,7 @@ io.on('connection', socket => {
         if (people[socket.id]) {
             socket.broadcast.to(people[socket.id].room).emit('user leave', people[socket.id].name);
             io.emit('chat message', `${people[socket.id].name} has left.`);
+            people[socket.id] = null;
         }
     });
 });

@@ -15,9 +15,10 @@
             <div class="chat__content">
                 <ul class="chat__messages"></ul>
                 <div class="user-list">
-                    <div class="user-list__title">Онлайн</div>
+                    <div class="user-list__title">Online</div>
                     <ul class="user-list__content"></ul>
                 </div>
+                <div class="chat__typing"></div>
             </div>
             <form action="" class="chat__form">
                 <input class="chat__input" autocomplete="off" />
@@ -34,7 +35,8 @@
            chatRooms = document.querySelector('.chat__rooms'),
            chatInput = document.querySelector('.chat__input'),
            chatUserList = document.querySelector('.user-list__content'),
-           chatWindow = document.querySelector('.chat__messages');
+           chatWindow = document.querySelector('.chat__messages'),
+           chatTyping = document.querySelector('.chat__typing');
 
      function login () {
          socket.emit('login', loginInput.value);
@@ -67,9 +69,19 @@
          e.preventDefault();
      });
 
+     let typingTimeout;
+
+     function _onTyping () {
+         clearTimeout(typingTimeout);
+         socket.emit('typingMessage', { 'isTyping': true });
+         typingTimeout = setTimeout(typingTimeoutFunction, 3000);
+     }
+
      chatInput.addEventListener('keyup', e => {
          if (e.keyCode === '13') {
              sendMessage();
+         } else {
+             _onTyping();
          }
      });
 
@@ -125,5 +137,25 @@
      }
 
      socket.on('user list', _getUserList);
+
+     function _onUserTyping (user) {
+         if (user.isTyping) {
+             const newUserTyping = `${user.name} is typing...`;
+
+             if (chatTyping.innerHTML !== newUserTyping) {
+                 chatTyping.innerHTML = newUserTyping;
+             }
+
+             chatTyping.classList.remove('chat__typing_hidden');
+         } else {
+             chatTyping.classList.add('chat__typing_hidden');
+         }
+     }
+
+     function typingTimeoutFunction (){
+         socket.emit('typingMessage', { isTyping: false });
+     }
+
+     socket.on('typingMessage', _onUserTyping);
     </script>
 </html>
