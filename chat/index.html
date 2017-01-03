@@ -36,17 +36,20 @@
            chatInput = document.querySelector('.chat__input'),
            chatUserList = document.querySelector('.user-list__content'),
            chatWindow = document.querySelector('.chat__messages'),
-           chatTyping = document.querySelector('.chat__typing');
+           chatTyping = document.querySelector('.chat__typing'),
+           currentRoom = 0;
 
      let userinfo = {
          name: false,
-         uuid: false,
          room: 0
      };
 
+     function _createRoom (roomID) {
+         socket.emit('join room', roomID);
+     }
+
      function _onUserClick (e) {
          if (e.target.classList.contains('user-list__link')) {
-             socket.emit('join private', e.target.dataset.room);
          }
      }
 
@@ -153,7 +156,7 @@
                userTextNode = document.createTextNode(user.name);
 
          userLinkNode.appendChild(userTextNode);
-         userLinkNode.dataset.uuid = user.uuid;
+         userLinkNode.dataset.roomID = Math.random().toString(36).substring(2);
          userLinkNode.classList.add('user-list__link');
 
          userLink.value = '#';
@@ -195,6 +198,7 @@
      }
 
      socket.on('typing message', _onUserTyping);
+
 
      function changeRoom (roomID) {
          console.log(roomID, 'changed room');

@@ -32,8 +32,7 @@ io.on('connection', socket => {
 
         people[socket.id] = {
             "name" : name,
-            "room" : 0,
-            "uuid" : uuid.v4()
+            "room" : [0]
         };
 
         socket.join(0);
@@ -44,16 +43,15 @@ io.on('connection', socket => {
             timestamp: getTime(),
             text: `${people[socket.id].name} has joined.`
         });
+
         io.in(people[socket.id].room).emit('user join', {
-            name: people[socket.id].name,
-            uuid: people[socket.id].uuid
+            name: people[socket.id].name
         });
 
         for (let user in people) {
             if (people[user] && typeof people[user].name !== 'undefined') {
                 userList.push({
-                    name: people[user].name,
-                    uuid: people[user].uuid
+                    name: people[user].name
                 });
             }
 
@@ -69,10 +67,6 @@ io.on('connection', socket => {
         socket.emit('userinfo', people[socket.id]);
     });
 
-    socket.on('join private', (room) => {
-
-    });
-
     socket.on('typing message', (user) => {
         if(people[socket.id]) {
             socket.broadcast.to(people[socket.id].room).emit('typing message', {
@@ -80,6 +74,25 @@ io.on('connection', socket => {
                 isTyping: user.isTyping
             });
         }
+    });
+
+    socket.on('join room', (roomID) => {
+        socket.join(roomID);
+        socket.emit('login', roomID);
+
+        socket.broadcast.to(roomID).emit('chat message', {
+            author: 'System',
+            timestamp: getTime(),
+            text: `${people[socket.id].name} has joined.`
+        });
+
+        io.in(roomID).emit('user join', {
+            name: people[socket.id].name
+        });
+    });
+
+    socket.on('leave room', (roomID) => {
+        socket.leave(roomID);
     });
 
     socket.on('chat message', msg => {

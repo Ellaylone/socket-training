@@ -108,7 +108,6 @@ li {
 
 .chat__room_active {
     border-bottom: none;
-    outline: 1px solid #fff;
 }
 
 .chat__room:after {
